@@ -1,15 +1,13 @@
 # Data-Wrangling-Project: Tuition VS Salary
-Is College worthy? Is paying tuition a good invest for your future? 
+Is College worthy? Is paying tuition a good investment for your future? 
 
 
 ### Dataset Source
 
-*Tuition and fees* by college/university for 2018-2019 from the [Chronicle of Higher Education](https://www.chronicle.com/interactives/tuition-and-fees).
+*tuition_cost*: is from "College tuition, Diversity, and Pay" in rfordatascience/tidetuesday/2020-03-10, which is originally acquired from the US Department of Education and the [Chronicle of Higher Education](https://www.chronicle.com/interactives/tuition-and-fees).
 
-*Diversity* by college/university from the [Chronicle of Higher Education](https://www.chronicle.com/interactives/student-diversity-2016).
+*student_diversity*: student_diversity by college/university, along with school type, degree length, state, in-state vs out-of-stateby college/university is from the [Chronicle of Higher Education](https://www.chronicle.com/interactives/student-diversity-2016).
 
-*Salary potential* data comes from [payscale.com](https://www.payscale.com/college-salary-report/best-schools-by-state/bachelors/new-hampshire).
+*Best_School* data comes from [payscale.com](https://www.payscale.com/college-salary-report/best-schools-by-state).
 
-*House Price Index* *Mortgage Rates* data from [Freddie Mac House Price Index at both the State and National level](http://www.freddiemac.com/research/indices/house-price-index.page).
-
-*Mortgage Rates* data from [Freddie Mac House Price Index at both the State and National level](http://www.freddiemac.com/research/indices/house-price-index.page).
+*historical_tuition*: is from "College tuition, Diversity, and Pay" in rfordatascience/tidetuesday/2020-03-10, which is originally acquired from the [National Center for Education Statistics](https://nces.ed.gov/fastfacts/display.asp?id=76).
