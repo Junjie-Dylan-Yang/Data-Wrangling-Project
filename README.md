@@ -1,5 +1,5 @@
 # Data-Wrangling-Project: Tuition VS Salary
-Is College worthy? Is paying tuition a good investment for your future? 
+Is college worth it? Is college a good investment for your future? On one hand, college could be worth it by leading to higher employment rates and higher career performance,  in terms of various financial measurements, than people who do not go to college. On the other hand, college tuition is constantly rising and is the same for student loan debt. 
 
 
 ### Dataset Source
