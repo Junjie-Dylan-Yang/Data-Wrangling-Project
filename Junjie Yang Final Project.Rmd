@@ -30,6 +30,7 @@ library(xml2)
 library(choroplethr)
 library(choroplethrMaps)
 library(countrycode)
+library("xlsx")
 ```
 
 
@@ -211,8 +212,11 @@ rownames(Fianl_data)=1:nrow(Fianl_data)
 ```{r echo=TRUE}
 head(Fianl_data,10)
 ```
-
-
+## The tidy version of the final data is saved under local location and will be committed from Github desktop to Github.com repository (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
+```{r include=FALSE}
+getwd()
+write.xlsx(Fianl_data, "Tidy_Data.xlsx", row.names = FALSE)
+```
 
 
 
