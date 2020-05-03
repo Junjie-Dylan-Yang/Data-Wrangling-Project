@@ -1,10 +1,11 @@
 ---
-title: 'Final Project: Is College worthy? (Tuition VS Salary)'
+title: 'Final Project: Is Your College Worthy? (Tuition VS Salary)'
 author: "Junjie Yang"
 date: "5/2/2020"
 output:
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -123,29 +124,93 @@ head(tuition_with_diversity,10)
 ## Import third data: Best_School
 Third data source, best_school is html data, acquired from the from the payscale.com. It contains all the schools in United States that are arranged by various measurement of career performance, such as "Early Career Pay" and "Mid Career Pay.
 
-
-
+## Problem encountered
+When importing html data from https://www.payscale.com/college-salary-report/bachelors, I realized the table only include the data with the top 25 schools in the United States, descending by measurement of career performance. That's the issue that I am not expecting. Moreover, this is the first page in the web and there are 63 pages in total, which consists all the school data.
 ```{r include=FALSE}
 #Initial datapull
-  url <- ("https://www.payscale.com/college-salary-report/bachelors")
+url <- ("https://www.payscale.com/college-salary-report/bachelors")
 
-  raw_table <- url %>% 
+best_school_test = url %>% 
+  read_html() %>% 
+  html_table(fill = TRUE) %>% 
+  .[[1]]
+```
+
+## Problem resolved
+Instead of importing data 63 times to get the entire dataset, one alternative webpage is found by navigating the payscale.com. The page “Best Schools By State” (https://www.payscale.com/college-salary-report/best-schools-by-state) outlays all the best schools ranked by measurement of career performance of all 50 states. Clicking on each state would direct to the schools data within that particular state. In order to import the entire data, I first convert the string format in the list of state.name to match the url (“New York” to “New-York”). Then, a data frame is created. For-Loop is implemented to import all 50 states data to the R environment and to keep loading data into the data frame to form a complete dataset, “Best_School”, for data cleansing.
+
+```{r echo=FALSE}
+store_url = "https://www.payscale.com/college-salary-report/best-schools-by-state/bachelors/"
+
+#Modify state in state.name to match the format in url
+state_name = str_replace_all(state.name, " ","-")
+
+#Initial dataframe to start with
+Best_School = best_school_test
+
+#Keep appending data to dataframe
+for (i in 1:length(state_name)){
+  url = paste0(store_url,state_name[i])
+  school_state_data = paste0("Best_School",i)
+  
+  school_state_data = url %>% 
     read_html() %>% 
     html_table(fill = TRUE) %>% 
     .[[1]]
+  
+  Best_School = rbind(Best_School, school_state_data)
+}
+
+#Remove rows in initial dataframe
+Best_School = Best_School[-(1:25),]
 ```
 
-## Data Cleaning for  data
 
+## Data Cleaning for Best_School data
+First step is to modify the column name "School Name" to "name" and to keep the exact name of school only, in order to match the tuition_with_diversity dataset for binding. After that, there are several data cleansing steps that are applied to other columns. Only numeric values are extracted from the column, “Rank”, "Early Career Pay", "Mid-Career Pay", "% High Meaning", "% STEM Degrees". One lesson learned is that R suggests to use parse_number(), instead of extract_numeric() for extracting numeric value.
 
-```{r echo=FALSE}
+ 
+```{r include=FALSE}
+#Modify "School Name" to "name" to match the tuition_with_diversity dataset
+Best_School_clean = Best_School%>%
+  rename(name = "School Name")
 
+#Extract school name
+Best_School_clean$name = str_remove(Best_School_clean$name, "School Name:")
 
+Best_School_clean$`Mid-Career Pay` = str_remove(Best_School_clean$`Mid-Career Pay`, "Mid-Career Pay:")
+
+#Extract number content from certain column  
+Best_School_clean = Best_School_clean%>%
+  mutate(
+  Rank = parse_number(Best_School_clean$Rank),
+  "Early Career Pay" = parse_number(Best_School_clean$`Early Career Pay`),
+  "Mid-Career Pay" = parse_number(Best_School_clean$`Mid-Career Pay`),
+  "% High Meaning" = parse_number(Best_School_clean$`% High Meaning`),
+  "% STEM Degrees" = parse_number(Best_School_clean$`% STEM Degrees`),
+  )
+
+Best_School_clean = Best_School_clean%>%
+  select(name, "Early Career Pay", "Mid-Career Pay", "% High Meaning", "% STEM Degrees" )
 ```
 
+## Below is the snippet of Best_School_clean data
+```{r echo=TRUE}
+head(Best_School_clean,10)
+```
 
+## Combine Best_School_clean data and tuition_with_diversity
+Finally, Best_School_clean data, which contains different measurements of career performance, merges with tuition_with_diversity data, which contains detailed school information including tuition and race. The column both datasets have in common is “name” and left_join is performed. Similar to the previous merged dataset, schools with “NA” are removed from the dataset. 
+```{r include=FALSE}
+Fianl_data = left_join(Best_School_clean, tuition_with_diversity, by = "name") %>%
+  na.omit(Fianl_data)
+rownames(Fianl_data)=1:nrow(Fianl_data)
+```
 
-
+## Below is the snippet of the Final_data with 622 observations in all 50 states in United States and each college or university is a unique observation. This is the tidy version of the final data and it will be stored as a csv file.
+```{r echo=TRUE}
+head(Fianl_data,10)
+```
 
 
 
