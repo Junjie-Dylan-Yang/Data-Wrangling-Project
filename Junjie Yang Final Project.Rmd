@@ -1,8 +1,10 @@
 ---
-title: 'Final Project: Is College Worthy?'
+title: 'Final Project: Is College worthy? (Tuition VS Salary)'
 author: "Junjie Yang"
 date: "5/2/2020"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -31,19 +33,11 @@ library(countrycode)
 
 
 
-## Import data
 ```{r include=FALSE}
-#College Data
-
-tuition_cost <-read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/tuition_cost.csv')
-
-tuition_income <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/tuition_income.csv') 
-
 salary_potential <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/salary_potential.csv')
 
 historical_tuition <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/historical_tuition.csv')
 
-diversity_school <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/diversity_school.csv')
 
 #Housing Data
 
@@ -52,6 +46,125 @@ state_hpi <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytue
 mortgage_rates <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-02-05/mortgage.csv")
 
 ```
+
+## Import first data: 
+First data source, tuition_cost, is from "College tuition, Diversity, and Pay" in rfordatascience/tidetuesday/2020-03-10, which is originally acquired from the US Department of Education and the Chronicle of Higher Education. 
+
+```{r include=FALSE}
+tuition_cost <-read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/tuition_cost.csv')
+
+```
+
+## Data Cleaning for tuition_cost data
+In the tuition_cost data, relevant columns are selected (name of the school, state, state code, type of the school, length of the degree). Also, room and board fee and tuition are combined as total tuition and fee.
+```{r echo=FALSE}
+
+tuition_cost = tuition_cost%>%
+  select(name, state, state_code, type, degree_length, in_state_total, out_of_state_total)%>%
+  mutate(in_state_tuition_and_fee = in_state_total, out_of_state_tuition_and_fee = out_of_state_total, in_state_total = NULL, out_of_state_total = NULL)
+```
+
+## Below is the snippet of tuition_cost data
+```{r echo=TRUE}
+head(tuition_cost,10)
+```
+
+
+## Import second data: 
+Second data source, student_diversity by college/university, along with school type, degree length, state, in-state vs out-of-state is from the Chronicle of Higher Education.
+```{r include=FALSE}
+student_diversity <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/student_diversity.csv')
+```
+
+## Data Cleaning for student_diversity data
+In the student_diversity data, the main data cleansing task is to modify name of institution to match the “name” column and “state” column in the tuition_cost data, in order to combine dataset. Several data wrangling steps were applied. First is to change the column name “INSTITUTION” to “name”. After that, convert any abbreviation of University from “U.” to “University”. From the first glance, the name of state is located at the very end of the name of institution. The next step is to extract state from school name with the help of state.name which contains the list of all the state name and column “state” is created. Last but not least, state name inside the name of institution needed to remove. Using str_count to count the letters within state in each observation and str_sub help to keep the name of school only in the “name” column. Str_trim and str_squish are used to remove unnecessary spaces in "name".
+```{r include=FALSE}
+#Select relevant columns and change column name "INSTITUTION" to “name” to later binding datasets
+student_diversity = student_diversity%>%
+  rename(name = "INSTITUTION")%>%
+  select(name, ENROLLMENT:WHITE, `TOTAL MINORITY` )
+
+#Modify school name to match school name in the tuition_cost data 
+student_diversity_cleaned = student_diversity%>%
+  mutate(name = str_replace(name, "U.", "University "))
+
+#Extract state from school name with the help of state.name which contains the list of all the state name
+student_diversity_cleaned = student_diversity_cleaned%>%
+  mutate(state = str_extract(name, paste0(state.name, collapse = "|")))
+
+#Clear any unnecessary spaces in "name" and remove the state at the end of "name"
+student_diversity_cleaned$name = str_squish(student_diversity_cleaned$name)
+
+position_to_remove = str_count(student_diversity_cleaned$state)+1
+student_diversity_cleaned$name = str_sub(student_diversity_cleaned$name, 1, -(position_to_remove))
+
+student_diversity_cleaned$name = str_trim(student_diversity_cleaned$name)
+```
+
+## Below is the snippet of student_diversity_cleaned data
+```{r echo=TRUE}
+head(student_diversity_cleaned,10)
+```
+
+## Combine tuition_cost and student_diversity data based on "name" and "state"
+So far, student_diversity and tuition_cost are modified to share two common column, “name” – name of the school and “state” – the state that the school is located. Thus, student_diversity and tuition_cost datasets are merged for late development. There are a few schools appears in the tuition_cost dataset but not in the student_diversity and “NA” value appear. It is reasonable and schools with “NA” value are removed from the combined dataset. The combined dataset is arranged by state and the name of the school.
+```{r include=FALSE}
+tuition_with_diversity = left_join(tuition_cost, student_diversity_cleaned, by = c("name","state"))%>%
+  na.omit(tuition_with_diversity)
+
+tuition_with_diversity = tuition_with_diversity[order(tuition_with_diversity$state, tuition_with_diversity$name),]
+```
+
+## Below is the snippet of tuition_with_diversity data
+```{r echo=TRUE}
+head(tuition_with_diversity,10)
+```
+
+## Import third data: Best_School
+Third data source, best_school is html data, acquired from the from the payscale.com. It contains all the schools in United States that are arranged by various measurement of career performance, such as "Early Career Pay" and "Mid Career Pay.
+
+
+
+```{r include=FALSE}
+#Initial datapull
+  url <- ("https://www.payscale.com/college-salary-report/bachelors")
+
+  raw_table <- url %>% 
+    read_html() %>% 
+    html_table(fill = TRUE) %>% 
+    .[[1]]
+```
+
+## Data Cleaning for  data
+
+
+```{r echo=FALSE}
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
