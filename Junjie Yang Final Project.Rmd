@@ -3,9 +3,9 @@ title: 'Final Project: Is College Worth It? (Tuition VS Salary)'
 author: "Junjie Yang"
 date: "5/2/2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -206,13 +206,13 @@ Mid_career_pay_paidoff: different between median salary for alumni with 10+ year
 
 Early_career_pay_paidoff: different between median salary for alumni with 0-5 years experience and out of state tuition and fee.
 ```{r include=FALSE}
-Fianl_data = left_join(Best_School_clean, tuition_with_diversity, by = "name") %>%
-  na.omit(Fianl_data)
-rownames(Fianl_data)=1:nrow(Fianl_data)
+Final_data = left_join(Best_School_clean, tuition_with_diversity, by = "name") %>%
+  na.omit(Final_data)
+rownames(Final_data)=1:nrow(Final_data)
 
-Fianl_data$Mid_career_pay_paidoff = Fianl_data$`Mid-Career Pay` - Fianl_data$out_of_state_tuition_and_fee
+Final_data$Mid_career_pay_paidoff = Final_data$`Mid-Career Pay` - Final_data$out_of_state_tuition_and_fee
 
-Fianl_data$Early_career_pay_paidoff = Fianl_data$`Early Career Pay` - Fianl_data$out_of_state_tuition_and_fee
+Final_data$Early_career_pay_paidoff = Final_data$`Early Career Pay` - Final_data$out_of_state_tuition_and_fee
 
 ```
 
@@ -231,12 +231,12 @@ Below information is from payscale.com:
 "% STEM Degrees" is defined as the percentage of degrees awarded in science, technology, engineering or a math subjects.
 
 ```{r echo=F, results= 'show'}
-head(Fianl_data,10)
+head(Final_data,10)
 ```
-#### The tidy version of the final data, "Fianl_data" is saved under the name "Tidy_Data.xlsx" local location and will be committed from Github desktop to Github.com repository (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
+#### The tidy version of the final data, "Final_data" is saved under the name "Tidy_Final_Data.xlsx" local location and will be committed from Github desktop to Github.com repository (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
 ```{r include=FALSE}
 getwd()
-write.xlsx(Fianl_data, "Tidy_Data.xlsx", row.names = FALSE)
+write.xlsx(Final_data, "Tidy_Final_Data.xlsx", row.names = FALSE)
 ```
 
 ## 4,
@@ -257,7 +257,7 @@ write.xlsx(historical_tuition, "Tuition_trend.xlsx")
 head(historical_tuition,10)
 ```
 
-# III. Data Analysis by plot and tables
+# III. Data Analysis by Various Plot and Tables
 After a series of data wrangling and data cleansing conducted on several data sources from above, final data in tidy version, "Final_data" and "historical_tuition" data are ready to use for data analysis.
 
 ## 1, Tuition Trend: Going upward over time
@@ -286,8 +286,8 @@ ggplot(Two_Year_Constant, mapping = aes(Two_Year_Constant$year, Two_Year_Constan
 Create another dataset "state_data" at state level from the final data, "Final_data". All numeric values are summarised by taking the average respect to each state. This dataset is also saved in the same location as the final data.
 
 ```{r include=FALSE}
-state_data = Fianl_data%>%
-  group_by(Fianl_data$state)%>%
+state_data = Final_data%>%
+  group_by(Final_data$state)%>%
   summarise(
     count = n(),
     Mean_Early_Career_Pay = mean(`Early Career Pay`),
@@ -300,7 +300,7 @@ state_data = Fianl_data%>%
     Mean_early_paidoff = mean(`Early_career_pay_paidoff`),
     Mean_mid_paidoff = mean(`Mid_career_pay_paidoff`)
     )%>%
-  rename(state = "Fianl_data$state")
+  rename(state = "Final_data$state")
 write.xlsx(state_data, "state_data.xlsx")
 
 ```
@@ -386,17 +386,66 @@ state_choropleth(Paidoff_mid_map, title = 'Average of [Mid Salary(5-10 Years Exp
 ```
 
 
-## 3, Take a look at the final data, "Final_data" at the level of school type (Private vs Public, 4yr degress vs 2yr degrees)
+## 3, Take a look at the final data, "Final_data" at the level of school type (Private vs Public)
+
+In the average Mid-career Salary(5-10 Years Experience) and the average Early-Salary(0-5 Years Experience, private schools outweights public schools in the U.S. However, in the most important career performance matrics that I created, public schools really shows the advantage. Because of lower total tuition cost, the "Mean_early_paidoff", which represents the average amount of [Early Salary(0-5 Years Experience) - College Cost] for public school is much larger than that in private school. 
+
+As a result, if people believe that college is a good investment, public schools should be highly considered.
+
 ```{r echo=F, results= 'show'}
+School_type_data = Final_data%>%
+  group_by(Final_data$type)%>%
+  summarise(
+    count = n(),
+    Mean_Early_Career_Pay = mean(`Early Career Pay`),
+    Mean_Mid_Career_pay = mean(`Mid-Career Pay`),
+    Mean_High_Meaning = mean(`% High Meaning`),
+    Mean_STEM_Degree = mean(`% STEM Degrees`),
+    Mean_Out_Of_State_Cost = mean(`out_of_state_tuition_and_fee`),
+    Mean_Enrollment = mean(`ENROLLMENT`),
+    Mean_Minority = mean(`TOTAL MINORITY`),
+    Mean_early_paidoff = mean(`Early_career_pay_paidoff`),
+    Mean_mid_paidoff = mean(`Mid_career_pay_paidoff`)
+    )%>%
+  rename(type = "Final_data$type")
 
-
+School_type_data
 ```
 
 
-## 4, Linear Model on each states (Factors that impact salary) and save for future development and improvement
+# IV. Future Development and Improvement
 
+## 1, Create a dataset with nested states 
 
-# IV. User Interface
+Save for future development and improvement, such as creating linear regression model for each states to reveal siginificant impact that each factor might have on the relationship between college cost and career performance.
+```{r echo=T, results= 'show'}
+state_nested = Final_data %>%
+  group_by(state)%>%
+  nest()
+```
+## 2, More data needed
+When comparing schools with different length of degrees, the comparison could be bias because there are only 2 private schools. 
+
+As for improvement, more private schools in the U.S. should be added into the dataset.
+```{r echo=F, results= 'show'}
+Year_type_data = Final_data%>%
+  group_by(Final_data$degree_length)%>%
+  summarise(
+    count = n(),
+    Mean_Early_Career_Pay = mean(`Early Career Pay`),
+    Mean_Mid_Career_pay = mean(`Mid-Career Pay`),
+    Mean_High_Meaning = mean(`% High Meaning`),
+    Mean_STEM_Degree = mean(`% STEM Degrees`),
+    Mean_Out_Of_State_Cost = mean(`out_of_state_tuition_and_fee`),
+    Mean_Enrollment = mean(`ENROLLMENT`),
+    Mean_Minority = mean(`TOTAL MINORITY`),
+    Mean_early_paidoff = mean(`Early_career_pay_paidoff`),
+    Mean_mid_paidoff = mean(`Mid_career_pay_paidoff`)
+    )%>%
+  rename(degree_length = "Final_data$degree_length")
+
+Year_type_data
+```
 
 
 
