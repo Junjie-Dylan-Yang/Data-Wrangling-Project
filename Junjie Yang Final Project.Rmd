@@ -18,8 +18,11 @@ On one hand, college could be worth it by leading to higher employment rates and
 
 In this project, four data sources are acquired from the US Department of Education, the Chronicle of Higher Education, the National Center for Education Statistics, and payscale.com. A final dataset in tidy version is created by conducting a significant amount of data cleansing and data wrangling techniques, so as to retrieve insightful information regarding the relationship between tuition or other factors in college and future career performance of college graduates.  
 
-## Github Link: 
-## (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
+## Github Link
+
+(Include several Data in tidy version, Rmd File, Report in PDF File and HTML File) 
+
+### (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
 
 
 ```{r include=FALSE}
@@ -197,10 +200,20 @@ head(Best_School_clean,10)
 
 ### Combine Best_School_clean data and tuition_with_diversity to form the final data 
 Finally, Best_School_clean data, which contains different measurements of career performance, merges with tuition_with_diversity data, which contains detailed school information including tuition and race. The column both datasets have in common is “name” and left_join is performed. Similar to the previous merged dataset, schools with “NA” are removed from the dataset. 
+
+### Create new variables: 
+Mid_career_pay_paidoff: different between median salary for alumni with 10+ years experience and out of state tuition and fee.
+
+Early_career_pay_paidoff: different between median salary for alumni with 0-5 years experience and out of state tuition and fee.
 ```{r include=FALSE}
 Fianl_data = left_join(Best_School_clean, tuition_with_diversity, by = "name") %>%
   na.omit(Fianl_data)
 rownames(Fianl_data)=1:nrow(Fianl_data)
+
+Fianl_data$Mid_career_pay_paidoff = Fianl_data$`Mid-Career Pay` - Fianl_data$out_of_state_tuition_and_fee
+
+Fianl_data$Early_career_pay_paidoff = Fianl_data$`Early Career Pay` - Fianl_data$out_of_state_tuition_and_fee
+
 ```
 
 ### Below is the snippet of the Final_data 
@@ -245,21 +258,145 @@ head(historical_tuition,10)
 ```
 
 # III. Data Analysis by plot and tables
-After above series of data wrangling and data cleansing conducted on several data sources, final data in tidy version, "Final_data" and "historical_tuition" data are ready to use for data analysis.
+After a series of data wrangling and data cleansing conducted on several data sources from above, final data in tidy version, "Final_data" and "historical_tuition" data are ready to use for data analysis.
 
-## 1, Tuition Trend
+## 1, Tuition Trend: Going upward over time
+Split the historical_tuition into 3 subset dataset by tuition type: "All Constant", "4 Year Constant", and "2 Year Constant". From below plots, it clearly shows that, college tuition increases at a rapid rate over time, on schools with all three tuition types. 
+```{r include=FALSE}
+#filter for different tuition type
+All_Constant = historical_tuition%>%
+  filter(historical_tuition$tuition_type == "All Constant")
+Four_Year_Constant = historical_tuition%>%
+  filter(historical_tuition$tuition_type == "4 Year Constant")
+Two_Year_Constant = historical_tuition%>%
+  filter(historical_tuition$tuition_type == "2 Year Constant")
 
 
+```
+
+```{r echo=F, results= 'show'}
+ggplot(All_Constant, mapping = aes(All_Constant$year, All_Constant$tuition_cost, color = type)) +geom_point()+ coord_flip() + ggtitle('Tuition by Year for School with Tuition Type: All Constant')+theme(plot.title = element_text(hjust = 0.5))+facet_wrap(~All_Constant$type, ncol = 3, scales = 'free')+ylab("Tuition in USD") +xlab("Year")
+
+ggplot(Four_Year_Constant, mapping = aes(Four_Year_Constant$year, Four_Year_Constant$tuition_cost, color = type)) +geom_point()+ coord_flip() + ggtitle('Tuition by Year for School with Tuition Type: 4 Year Constant')+theme(plot.title = element_text(hjust = 0.5))+facet_wrap(~Four_Year_Constant$type, ncol = 3, scales = 'free')+ylab("Tuition in USD")+xlab("Year")
+
+ggplot(Two_Year_Constant, mapping = aes(Two_Year_Constant$year, Two_Year_Constant$tuition_cost, color = type)) +geom_point()+ coord_flip() + ggtitle('Tuition by Year for School with Tuition Type: 2 Year Constant')+theme(plot.title = element_text(hjust = 0.5))+facet_wrap(~Two_Year_Constant$type, ncol = 3, scales = 'free')+ylab("Tuition in USD")+xlab("Year")
+```
+
+## 2, Take a look at the final data, "Final_data" at the level of states.
+Create another dataset "state_data" at state level from the final data, "Final_data". All numeric values are summarised by taking the average respect to each state. This dataset is also saved in the same location as the final data.
+
+```{r include=FALSE}
+state_data = Fianl_data%>%
+  group_by(Fianl_data$state)%>%
+  summarise(
+    count = n(),
+    Mean_Early_Career_Pay = mean(`Early Career Pay`),
+    Mean_Mid_Career_pay = mean(`Mid-Career Pay`),
+    Mean_High_Meaning = mean(`% High Meaning`),
+    Mean_STEM_Degree = mean(`% STEM Degrees`),
+    Mean_Out_Of_State_Cost = mean(`out_of_state_tuition_and_fee`),
+    Mean_Enrollment = mean(`ENROLLMENT`),
+    Mean_Minority = mean(`TOTAL MINORITY`),
+    Mean_early_paidoff = mean(`Early_career_pay_paidoff`),
+    Mean_mid_paidoff = mean(`Mid_career_pay_paidoff`)
+    )%>%
+  rename(state = "Fianl_data$state")
+write.xlsx(state_data, "state_data.xlsx")
+
+```
+
+### Plots that show insightful information regarding tuition and career performance at the state level
 
 
+(1) As people expected, big states like Pennsylvania, New York, California, and Massachusetts have the highest average out-of-state college cost because of high income and high levels of consumption rate.
+
+```{r echo=F, results= 'show'}
+#Tuition Analysis
+tuition_analysis = state_data%>%
+  arrange(desc(state_data$Mean_Out_Of_State_Cost))%>%
+  .[1:10,]
+
+ggplot(tuition_analysis, mapping = aes(reorder(tuition_analysis$state,tuition_analysis$Mean_Out_Of_State_Cost ), tuition_analysis$Mean_Out_Of_State_Cost, fill = tuition_analysis$Mean_Out_Of_State_Cost)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average out-of-state Tuition+Fee')+theme(plot.title = element_text(hjust = 0.5))+ylab("Tuition in USD")+xlab("State")+theme(legend.title = element_blank())
+```
+
+(2) There is no suprise that people graduated from colleges/universities big states like Pennsylvania, New York, Massachusetts, and California would have better career performance in terms of early-salary pay(0-5 year experience) and mid-salary pay(5-10 year experience) because schools in those states have the most wide range of education resources.
+
+```{r echo=F, results= 'show'}
+#Salary Analysis
+mid_salary_analysis = state_data%>%
+  arrange(desc(state_data$Mean_Early_Career_Pay))%>%
+  .[1:10,]
+
+early_salary_analysis = state_data%>%
+  arrange(desc(state_data$Mean_Early_Career_Pay))%>%
+  .[1:10,]
 
 
+par(mfrow=c(1,2))
+ggplot(mid_salary_analysis, mapping = aes(reorder(mid_salary_analysis$state,mid_salary_analysis$Mean_Mid_Career_pay ), mid_salary_analysis$Mean_Mid_Career_pay, fill = mid_salary_analysis$Mean_Mid_Career_pay)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average Mid-Salary (5-10 Years Experience)')+theme(plot.title = element_text(hjust = 0.5))+ylab("Average Salary in USD")+xlab("State")+theme(legend.title = element_blank())
+
+ggplot(early_salary_analysis, mapping = aes(reorder(early_salary_analysis$state,early_salary_analysis$Mean_Early_Career_Pay ), early_salary_analysis$Mean_Early_Career_Pay, fill = early_salary_analysis$Mean_Early_Career_Pay)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average Early-Salary (0-5 Years Experience)')+theme(plot.title = element_text(hjust = 0.5))+ylab("Average Salary in USD")+xlab("State")+theme(legend.title = element_blank())
 
 
+```
+
+(3) Interesting Finding:
+
+If poeple consider going to college is a good investment and decide to go to the colleges in big states like Pennsylvania, New York, Massachusetts, and California based on the above plots of career performance in terms of salary, they should also take a look at the bar plots below.
+
+"Mean_early_paidoff" and "Mean_mid_paidoff" are created based on "Early_career_pay_paidoff" and "Mid_career_pay_paidoff" during previous data cleansing steps in Part II. 
+
+They are defined as the average different between median salary for alumni with 0-5 and 5-10 years experience and out of state tuition and fee in different states.
+
+From the below plots and maps, the schools in the states that have the best investment value in terms of "Mean_early_paidoff" and "Mean_mid_paidoff" are Ulah, Wyoming, and New MExico, etc. The school in big states like New York and Pennsylvania are not in the top-10 list. One reason would be that those schools in the big states have the most wide range of education resources but at the same time, their college cost is way higher than the schools in other states.
 
 
+```{r echo=F, results= 'show', warning = FALSE}
+#Paidoff Analysis (Tuition vs Salary)
+Paidoff_early = state_data%>%
+  select(state, "Mean_early_paidoff")
+Paidoff_early = Paidoff_early%>%
+  arrange(desc(Paidoff_early$Mean_early_paidoff))%>%
+  .[1:10,]
+
+Paidoff_mid = state_data%>%
+  select(state, "Mean_mid_paidoff")
+Paidoff_mid = Paidoff_mid%>%
+  arrange(desc(Paidoff_mid$Mean_mid_paidoff))%>%
+  .[1:10,]
+
+par(mfrow=c(2,2))
+ggplot(Paidoff_early, mapping = aes(reorder(Paidoff_early$state,Paidoff_early$Mean_early_paidoff ), Paidoff_early$Mean_early_paidoff, fill = Paidoff_early$Mean_early_paidoff)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average of [Early Salary(0-5 Years Experience) - College Cost]')+theme(plot.title = element_text(hjust = 0.5))+ylab("Difference in USD")+xlab("State")+theme(legend.title = element_blank())
+
+Paidoff_early_map = state_data%>%
+  select(state, "Mean_early_paidoff")
+Paidoff_early_map$state = tolower(Paidoff_early_map$state)
+Paidoff_early_map = Paidoff_early_map%>%
+  rename(region = state, value = "Mean_early_paidoff")
+state_choropleth(Paidoff_early_map, title = 'Average of [Early Salary(0-5 Years Experience) - College Cost] in US')
+
+ggplot(Paidoff_mid, mapping = aes(reorder(Paidoff_mid$state,Paidoff_mid$Mean_mid_paidoff ), Paidoff_mid$Mean_mid_paidoff, fill = Paidoff_mid$Mean_mid_paidoff)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average of [Mid Salary(5-10 Years Experience) - College Cost]')+theme(plot.title = element_text(hjust = 0.5))+ylab("Difference in USD")+xlab("State")+theme(legend.title = element_blank())
+
+Paidoff_mid_map = state_data%>%
+  select(state, "Mean_mid_paidoff")
+Paidoff_mid_map$state = tolower(Paidoff_mid_map$state)
+Paidoff_mid_map = Paidoff_mid_map%>%
+  rename(region = state, value = "Mean_mid_paidoff")
+state_choropleth(Paidoff_mid_map, title = 'Average of [Mid Salary(5-10 Years Experience) - College Cost] in US')
+```
 
 
+## 3, Take a look at the final data, "Final_data" at the level of school type (Private vs Public, 4yr degress vs 2yr degrees)
+```{r echo=F, results= 'show'}
+
+
+```
+
+
+## 4, Linear Model on each states (Factors that impact salary) and save for future development and improvement
+
+
+# IV. User Interface
 
 
 
