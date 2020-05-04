@@ -3,9 +3,9 @@ title: 'Final Project: Is College Worth It? (Tuition VS Salary)'
 author: "Junjie Yang"
 date: "5/2/2020"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
