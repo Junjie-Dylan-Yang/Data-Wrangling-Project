@@ -22,7 +22,9 @@ In this project, four data sources are acquired from the US Department of Educat
 
 (Include several Data in tidy version, Rmd File, Report in PDF File and HTML File) 
 
-### (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
+### URL to clone: (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project.git)
+
+### URL to repository: (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
 
 
 ```{r include=FALSE}
@@ -48,7 +50,7 @@ library("xlsx")
 # II. ETL process: Data Import and Data Cleansing
 ## 1,
 ### Import first data: tuition_cost
-First data source, tuition_cost, is from "College tuition, Diversity, and Pay" in rfordatascience/tidetuesday/2020-03-10, which is originally acquired from the US Department of Education and the Chronicle of Higher Education. 
+First data source, tuition_cost, contains information of tuition and fees by college/university along with school type, degree length, stateis. It is from "College tuition, Diversity, and Pay" in rfordatascience/tidetuesday/2020-03-10, which is originally acquired from the US Department of Education and the Chronicle of Higher Education. 
 
 ```{r include=FALSE}
 tuition_cost <-read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/tuition_cost.csv')
@@ -71,7 +73,7 @@ head(tuition_cost,10)
 
 ## 2,
 ### Import second data: student_diversity
-Second data source, student_diversity by college/university, along with school type, degree length, state, in-state vs out-of-state is from the Chronicle of Higher Education.
+Second data source, student_diversity by college/university, along with information about enrollment and race, is from the Chronicle of Higher Education.
 ```{r include=FALSE}
 student_diversity <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/student_diversity.csv')
 ```
