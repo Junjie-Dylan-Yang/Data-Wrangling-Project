@@ -77,7 +77,7 @@ student_diversity <- read_csv('https://raw.githubusercontent.com/rfordatascience
 ```
 
 ### Data Cleaning for student_diversity data
-In the student_diversity data, the main data cleansing task is to modify name of institution to match the “name” column and “state” column in the tuition_cost data, in order to combine dataset. Several data wrangling steps were applied. First is to change the column name “INSTITUTION” to “name”. After that, convert any abbreviation of University from “U.” to “University”. From the first glance, the name of state is located at the very end of the name of institution. The next step is to extract state from school name with the help of state.name which contains the list of all the state name and column “state” is created. Last but not least, state name inside the name of institution needed to remove. Using str_count to count the letters within state in each observation and str_sub help to keep the name of school only in the “name” column. Str_trim and str_squish are used to remove unnecessary spaces in "name".
+In the student_diversity data, the main data cleansing task is to modify name of institution to match the “name” column and “state” column in the tuition_cost data, in order to combine dataset. Several data wrangling steps are applied. First is to change the column name “INSTITUTION” to “name”. After that, convert any abbreviation of University from “U.” to “University”. From the first glance, the name of state is located at the very end of the name of institution. The next step is to extract state from school name with the help of state.name which contains the list of all the state name and column “state” is created. Last but not least, state name inside the name of institution needed to remove. Using str_count to count the letters within state in each observation and str_sub help to keep the name of school only in the “name” column. Str_trim and str_squish are used to remove unnecessary spaces in "name".
 ```{r include=FALSE}
 #Select relevant columns and change column name "INSTITUTION" to “name” to later binding datasets
 student_diversity = student_diversity%>%
@@ -107,7 +107,7 @@ head(student_diversity_cleaned,10)
 ```
 
 ### Combine tuition_cost and student_diversity data based on "name" and "state"
-So far, student_diversity and tuition_cost are modified to share two common column, “name” – name of the school and “state” – the state that the school is located. Thus, student_diversity and tuition_cost datasets are merged for late development. There are a few schools appears in the tuition_cost dataset but not in the student_diversity and “NA” value appear. It is reasonable and schools with “NA” value are removed from the combined dataset. The combined dataset is arranged by state and the name of the school.
+So far, student_diversity and tuition_cost are modified to share two common column, “name” – name of the school and “state” – the state that the school is located. Thus, student_diversity and tuition_cost datasets are merged for later development. There are a few schools appears in the tuition_cost dataset but not in the student_diversity and results in “NA” value appearance. It is reasonable and schools with “NA” value are removed from the combined dataset. The combined dataset is arranged by state and the name of the school.
 ```{r include=FALSE}
 tuition_with_diversity = left_join(tuition_cost, student_diversity_cleaned, by = c("name","state"))%>%
   na.omit(tuition_with_diversity)
@@ -124,7 +124,7 @@ head(tuition_with_diversity,10)
 Third data source, best_school is html data, acquired from the from the payscale.com. It contains all the schools in United States that are arranged by various measurement of career performance, such as "Early Career Pay" and "Mid Career Pay.
 
 #### Problem encountered
-When importing html data from https://www.payscale.com/college-salary-report/bachelors, I realized the table only include the data with the top 25 schools in the United States, descending by measurement of career performance. That's the issue that I am not expecting. Moreover, this is the first page in the web and there are 63 pages in total, which consists all the school data.
+When importing html data from https://www.payscale.com/college-salary-report/bachelors, I realized that it only shows the first page of the table and the table only include the data with the top 25 schools in the United States, descending by measurement of career performance. That's the issue that I am not expecting. Moreover, this is the first page in the web and there are 63 pages in total, which consists all the school data.
 ```{r include=FALSE}
 #Initial datapull
 url <- ("https://www.payscale.com/college-salary-report/bachelors")
@@ -136,7 +136,7 @@ best_school_test = url %>%
 ```
 
 #### Problem resolved
-Instead of importing data 63 times to get the entire dataset, one alternative webpage is found by navigating the payscale.com. The page “Best Schools By State” (https://www.payscale.com/college-salary-report/best-schools-by-state) outlays all the best schools ranked by measurement of career performance of all 50 states. Clicking on each state would direct to the schools data within that particular state. In order to import the entire data, I first convert the string format in the list of state.name to match the url (“New York” to “New-York”). Then, a data frame is created. For-Loop is implemented to import all 50 states data to the R environment and to keep loading data into the data frame to form a complete dataset, “Best_School”, for data cleansing.
+Instead of importing data 63 times from different urls to get the entire dataset, one alternative webpage is found by navigating the payscale.com. The page “Best Schools By State” (https://www.payscale.com/college-salary-report/best-schools-by-state) outlays all the best schools ranked by measurement of career performance of all 50 states. Clicking on each state would direct to the schools data within that particular state. In order to import the entire data, I first convert the string format in the list of state.name to match the url format (for example, “New York” to “New-York”). Then, a data frame is created. For-Loop is implemented to import all 50 states data to the R environment and to keep loading data into the data frame to complete the entire dataset of all 50 states, “Best_School”, for data cleansing.
 
 ```{r echo=FALSE}
 store_url = "https://www.payscale.com/college-salary-report/best-schools-by-state/bachelors/"
@@ -166,7 +166,7 @@ Best_School = Best_School[-(1:25),]
 
 
 ### Data Cleaning for Best_School data
-First step is to modify the column name "School Name" to "name" and to keep the exact name of school only, in order to match the tuition_with_diversity dataset for binding. After that, there are several data cleansing steps that are applied to other columns. Only numeric values are extracted from the column, “Rank”, "Early Career Pay", "Mid-Career Pay", "% High Meaning", "% STEM Degrees". One lesson learned is that R suggests to use parse_number(), instead of extract_numeric() for extracting numeric value.
+First step is to modify the column name "School Name" to "name" and to keep the exact name of school only, in order to match the previous combined tuition_with_diversity dataset for binding. After that, there are several data cleansing steps that are applied to other columns. Only numeric values are extracted from the columns, “Rank”, "Early Career Pay", "Mid-Career Pay", "% High Meaning", "% STEM Degrees". One lesson learned is that R suggests to use parse_number(), instead of extract_numeric() for extracting numeric value.
 
  
 ```{r include=FALSE}
@@ -202,9 +202,14 @@ head(Best_School_clean,10)
 Finally, Best_School_clean data, which contains different measurements of career performance, merges with tuition_with_diversity data, which contains detailed school information including tuition and race. The column both datasets have in common is “name” and left_join is performed. Similar to the previous merged dataset, schools with “NA” are removed from the dataset. 
 
 ### Create new variables: 
-Mid_career_pay_paidoff: different between median salary for alumni with 10+ years experience and out of state tuition and fee.
+Mid_career_pay_paidoff: difference between median salary for alumni with 10+ years experience and out of state tuition and fee:
 
-Early_career_pay_paidoff: different between median salary for alumni with 0-5 years experience and out of state tuition and fee.
+[Mid Salary(0-5 Years Experience) - Total College Cost]
+
+Early_career_pay_paidoff: difference between median salary for alumni with 0-5 years experience and out of state tuition and fee:
+
+[Early Salary(0-5 Years Experience) - Total College Cost]
+
 ```{r include=FALSE}
 Final_data = left_join(Best_School_clean, tuition_with_diversity, by = "name") %>%
   na.omit(Final_data)
@@ -233,7 +238,7 @@ Below information is from payscale.com:
 ```{r echo=F, results= 'show'}
 head(Final_data,10)
 ```
-#### The tidy version of the final data, "Final_data" is saved under the name "Tidy_Final_Data.xlsx" local location and will be committed from Github desktop to Github.com repository (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
+#### The tidy version of the final data, "Final_data" is saved under the name "Tidy_Final_Data.xlsx" local location and committed from Github desktop to Github.com repository (https://github.com/Junjie-Dylan-Yang/Data-Wrangling-Project)
 ```{r include=FALSE}
 getwd()
 write.xlsx(Final_data, "Tidy_Final_Data.xlsx", row.names = FALSE)
@@ -283,7 +288,7 @@ ggplot(Two_Year_Constant, mapping = aes(Two_Year_Constant$year, Two_Year_Constan
 ```
 
 ## 2, Take a look at the final data, "Final_data" at the level of states.
-Create another dataset "state_data" at state level from the final data, "Final_data". All numeric values are summarised by taking the average respect to each state. This dataset is also saved in the same location as the final data.
+Create another dataset "state_data" at state level from the final data, "Final_data". All numeric values are summarised by taking the average respect to each state. This dataset is also saved under the name "state_data.xlsx", in the same location as the final data.
 
 ```{r include=FALSE}
 state_data = Final_data%>%
@@ -308,7 +313,7 @@ write.xlsx(state_data, "state_data.xlsx")
 ### Plots that show insightful information regarding tuition and career performance at the state level
 
 
-(1) As people expected, big states like Pennsylvania, New York, California, and Massachusetts have the highest average out-of-state college cost because of high income and high levels of consumption rate.
+(1) As people expected, schools in big states like Pennsylvania, New York, California, and Massachusetts have the highest average out-of-state college cost because of high income and high levels of consumption rate.
 
 ```{r echo=F, results= 'show'}
 #Tuition Analysis
@@ -319,7 +324,7 @@ tuition_analysis = state_data%>%
 ggplot(tuition_analysis, mapping = aes(reorder(tuition_analysis$state,tuition_analysis$Mean_Out_Of_State_Cost ), tuition_analysis$Mean_Out_Of_State_Cost, fill = tuition_analysis$Mean_Out_Of_State_Cost)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average out-of-state Tuition+Fee')+theme(plot.title = element_text(hjust = 0.5))+ylab("Tuition in USD")+xlab("State")+theme(legend.title = element_blank())
 ```
 
-(2) There is no suprise that people graduated from colleges/universities big states like Pennsylvania, New York, Massachusetts, and California would have better career performance in terms of early-salary pay(0-5 year experience) and mid-salary pay(10+ year experience) because schools in those states have the most wide range of education resources.
+(2) There is no suprise that people graduated from colleges/universities big states like Pennsylvania, New York, Massachusetts, and California would have better career performance in terms of early-salary pay (0-5 year experience) and mid-salary pay (10+ year experience) because schools in those states have the most wide range of education resources.
 
 ```{r echo=F, results= 'show'}
 #Salary Analysis
@@ -342,13 +347,13 @@ ggplot(early_salary_analysis, mapping = aes(reorder(early_salary_analysis$state,
 
 (3) Interesting Finding:
 
-If poeple consider going to college is a good investment and decide to go to the colleges in big states like Pennsylvania, New York, Massachusetts, and California based on the above plots of career performance in terms of salary, they should also take a look at the bar plots below.
+If poeple consider going to college is a good investment and decide to go to the colleges in big states like Pennsylvania, New York, Massachusetts, and California based on the above plots of career performance in terms of salary, they should also take a look at the plots below.
 
 "Mean_early_paidoff" and "Mean_mid_paidoff" are created based on "Early_career_pay_paidoff" and "Mid_career_pay_paidoff" during previous data cleansing steps in Part II. 
 
-They are defined as the average different between median salary for alumni with 0-5 and 10+ years experience and out of state tuition and fee in different states.
+They are defined as the average difference between median salary for alumni with 0-5 and 10+ years experience and out of state tuition and fee in different states.
 
-From the below plots and maps, the schools in the states that have the best investment value in terms of "Mean_early_paidoff" and "Mean_mid_paidoff" are Ulah, Wyoming, and New MExico, etc. The school in big states like New York and Pennsylvania are not in the top-10 list. One reason would be that those schools in the big states have the most wide range of education resources but at the same time, their college cost is way higher than the schools in other states.
+From below plots and maps, the schools in the states that have the best investment value in terms of "Mean_early_paidoff" and "Mean_mid_paidoff" are Ulah, Wyoming, and New Mexico, etc. The school in big states like New York and Pennsylvania are not in the Top-10 list. One reason would be that those schools in the big states have the most wide range of education resources, while at the same time, their college cost is way higher than the schools in other states.
 
 
 ```{r echo=F, results= 'show', warning = FALSE}
@@ -388,7 +393,9 @@ state_choropleth(Paidoff_mid_map, title = 'Average of [Mid Salary(10+ Years Expe
 
 ## 3, Take a look at the final data, "Final_data" at the level of school type (Private vs Public)
 
-In the average Mid-career Salary(10+ Years Experience) and the average Early-Salary(0-5 Years Experience, private schools outweights public schools in the U.S. However, in the most important career performance matrics that I created, public schools really shows the advantage. Because of lower total tuition cost, the "Mean_early_paidoff", which represents the average amount of [Early Salary(0-5 Years Experience) - College Cost] for public school is much larger than that in private school. 
+New dataset "School_type_data" is created from the final data, "Final_data", by splitting into two group, "Private" and "Public". All numeric values are summarised by taking the average respect to each type of school. 
+
+In the average Mid-career Salary(10+ Years Experience) and the average Early-Salary(0-5 Years Experience, private schools outweights public schools in the U.S. However, in the most important career performance matrics that I created, public schools really shows the advantage. Because of lower total college cost, the "Mean_early_paidoff", which represents the average amount of [Early Salary(0-5 Years Experience) - College Cost] for public school is much higher than that in private school. 
 
 As a result, if people believe that college is a good investment, public schools should be highly considered.
 
@@ -422,11 +429,28 @@ Save for future development and improvement, such as creating linear regression 
 state_nested = Final_data %>%
   group_by(state)%>%
   nest()
-```
-## 2, More data needed
-When comparing schools with different length of degrees, the comparison could be bias because there are only 2 private schools. 
 
-As for improvement, more private schools in the U.S. should be added into the dataset.
+# One example for Linear Regression for further data analysis:
+state_lm <- function(df){
+  lm(Mid_career_pay_paidoff ~ out_of_state_tuition_and_fee, data = df)
+}
+
+state_nested_lm <- state_nested$data %>% map(state_lm)
+#state_nested_lm[[1]]
+
+# Put the model right back into the nested data frame
+state_nested_1 = state_nested%>%
+  mutate(lm_fit = map(data, state_lm))
+
+state_nested_1 = state_nested_1%>%
+  mutate(lm_glance = map(lm_fit, glance))
+
+```
+
+## 2, More data needed
+When comparing schools with different length of degrees, the comparison could be bias because there are only 2 schools with length of degrees as 2 year. 
+
+As for improvement, more schools with 2 year degrees in the U.S. should be added into the dataset.
 ```{r echo=F, results= 'show'}
 Year_type_data = Final_data%>%
   group_by(Final_data$degree_length)%>%
