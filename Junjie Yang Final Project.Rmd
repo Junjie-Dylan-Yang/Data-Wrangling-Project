@@ -319,7 +319,7 @@ tuition_analysis = state_data%>%
 ggplot(tuition_analysis, mapping = aes(reorder(tuition_analysis$state,tuition_analysis$Mean_Out_Of_State_Cost ), tuition_analysis$Mean_Out_Of_State_Cost, fill = tuition_analysis$Mean_Out_Of_State_Cost)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average out-of-state Tuition+Fee')+theme(plot.title = element_text(hjust = 0.5))+ylab("Tuition in USD")+xlab("State")+theme(legend.title = element_blank())
 ```
 
-(2) There is no suprise that people graduated from colleges/universities big states like Pennsylvania, New York, Massachusetts, and California would have better career performance in terms of early-salary pay(0-5 year experience) and mid-salary pay(5-10 year experience) because schools in those states have the most wide range of education resources.
+(2) There is no suprise that people graduated from colleges/universities big states like Pennsylvania, New York, Massachusetts, and California would have better career performance in terms of early-salary pay(0-5 year experience) and mid-salary pay(10+ year experience) because schools in those states have the most wide range of education resources.
 
 ```{r echo=F, results= 'show'}
 #Salary Analysis
@@ -333,7 +333,7 @@ early_salary_analysis = state_data%>%
 
 
 par(mfrow=c(1,2))
-ggplot(mid_salary_analysis, mapping = aes(reorder(mid_salary_analysis$state,mid_salary_analysis$Mean_Mid_Career_pay ), mid_salary_analysis$Mean_Mid_Career_pay, fill = mid_salary_analysis$Mean_Mid_Career_pay)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average Mid-Salary (5-10 Years Experience)')+theme(plot.title = element_text(hjust = 0.5))+ylab("Average Salary in USD")+xlab("State")+theme(legend.title = element_blank())
+ggplot(mid_salary_analysis, mapping = aes(reorder(mid_salary_analysis$state,mid_salary_analysis$Mean_Mid_Career_pay ), mid_salary_analysis$Mean_Mid_Career_pay, fill = mid_salary_analysis$Mean_Mid_Career_pay)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average Mid-Salary (10+ Years Experience)')+theme(plot.title = element_text(hjust = 0.5))+ylab("Average Salary in USD")+xlab("State")+theme(legend.title = element_blank())
 
 ggplot(early_salary_analysis, mapping = aes(reorder(early_salary_analysis$state,early_salary_analysis$Mean_Early_Career_Pay ), early_salary_analysis$Mean_Early_Career_Pay, fill = early_salary_analysis$Mean_Early_Career_Pay)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average Early-Salary (0-5 Years Experience)')+theme(plot.title = element_text(hjust = 0.5))+ylab("Average Salary in USD")+xlab("State")+theme(legend.title = element_blank())
 
@@ -346,7 +346,7 @@ If poeple consider going to college is a good investment and decide to go to the
 
 "Mean_early_paidoff" and "Mean_mid_paidoff" are created based on "Early_career_pay_paidoff" and "Mid_career_pay_paidoff" during previous data cleansing steps in Part II. 
 
-They are defined as the average different between median salary for alumni with 0-5 and 5-10 years experience and out of state tuition and fee in different states.
+They are defined as the average different between median salary for alumni with 0-5 and 10+ years experience and out of state tuition and fee in different states.
 
 From the below plots and maps, the schools in the states that have the best investment value in terms of "Mean_early_paidoff" and "Mean_mid_paidoff" are Ulah, Wyoming, and New MExico, etc. The school in big states like New York and Pennsylvania are not in the top-10 list. One reason would be that those schools in the big states have the most wide range of education resources but at the same time, their college cost is way higher than the schools in other states.
 
@@ -375,20 +375,20 @@ Paidoff_early_map = Paidoff_early_map%>%
   rename(region = state, value = "Mean_early_paidoff")
 state_choropleth(Paidoff_early_map, title = 'Average of [Early Salary(0-5 Years Experience) - College Cost] in US')
 
-ggplot(Paidoff_mid, mapping = aes(reorder(Paidoff_mid$state,Paidoff_mid$Mean_mid_paidoff ), Paidoff_mid$Mean_mid_paidoff, fill = Paidoff_mid$Mean_mid_paidoff)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average of [Mid Salary(5-10 Years Experience) - College Cost]')+theme(plot.title = element_text(hjust = 0.5))+ylab("Difference in USD")+xlab("State")+theme(legend.title = element_blank())
+ggplot(Paidoff_mid, mapping = aes(reorder(Paidoff_mid$state,Paidoff_mid$Mean_mid_paidoff ), Paidoff_mid$Mean_mid_paidoff, fill = Paidoff_mid$Mean_mid_paidoff)) +geom_bar(stat = "identity")+ coord_flip() + ggtitle('Top 10 States by Average of [Mid Salary(10+ Years Experience) - College Cost]')+theme(plot.title = element_text(hjust = 0.5))+ylab("Difference in USD")+xlab("State")+theme(legend.title = element_blank())
 
 Paidoff_mid_map = state_data%>%
   select(state, "Mean_mid_paidoff")
 Paidoff_mid_map$state = tolower(Paidoff_mid_map$state)
 Paidoff_mid_map = Paidoff_mid_map%>%
   rename(region = state, value = "Mean_mid_paidoff")
-state_choropleth(Paidoff_mid_map, title = 'Average of [Mid Salary(5-10 Years Experience) - College Cost] in US')
+state_choropleth(Paidoff_mid_map, title = 'Average of [Mid Salary(10+ Years Experience) - College Cost] in US')
 ```
 
 
 ## 3, Take a look at the final data, "Final_data" at the level of school type (Private vs Public)
 
-In the average Mid-career Salary(5-10 Years Experience) and the average Early-Salary(0-5 Years Experience, private schools outweights public schools in the U.S. However, in the most important career performance matrics that I created, public schools really shows the advantage. Because of lower total tuition cost, the "Mean_early_paidoff", which represents the average amount of [Early Salary(0-5 Years Experience) - College Cost] for public school is much larger than that in private school. 
+In the average Mid-career Salary(10+ Years Experience) and the average Early-Salary(0-5 Years Experience, private schools outweights public schools in the U.S. However, in the most important career performance matrics that I created, public schools really shows the advantage. Because of lower total tuition cost, the "Mean_early_paidoff", which represents the average amount of [Early Salary(0-5 Years Experience) - College Cost] for public school is much larger than that in private school. 
 
 As a result, if people believe that college is a good investment, public schools should be highly considered.
 
